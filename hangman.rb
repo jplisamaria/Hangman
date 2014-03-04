@@ -1,31 +1,25 @@
 class Hangman
   attr_reader :words
   attr_reader :word
-  attr_accessor :remaining_guesses
+  attr_reader :remaining_guesses
   attr_reader :guesses
   attr_reader :guess
   ALLOWED_GUESSES = 6
+
   def initialize(filename)
     @words = IO.readlines(filename)
     @remaining_guesses = ALLOWED_GUESSES
     @guesses = []
     @guess = ""
-    @word = words.sample.strip.split(//)
+    @word = []
   end
 
   def play
     print_header
-    #    get_word
-    #puts @word.join
-    #puts "#{@remaining_guesses}  @remaining_guesses 1 in play"
-    while @remaining_guesses > 0
-      #puts "#{@remaining_guesses} remaining guesses 2 in play"
-
-      guess = prompt_for_guess
-      #puts "#{@remaining_guesses} remaining guesses 3 in play"
-
-      #puts "#{guess} guess 1 in play"
-      process_guess(guess, @remaining_guesses)
+    @word = words.sample.strip.split(//)
+    while remaining_guesses > 0
+      get_guess
+      process_guess
     end
   end
 
@@ -38,31 +32,21 @@ class Hangman
     puts intro
     puts instructions
     puts bar
-    3.times {puts}
+    blank_lines(3)
   end
 
-  #  def get_word
-  #    @word = words.sample.strip.split(//)
-  #    puts word
-  #  end
-
-  def prompt_for_guess
-    puts "*" * 40
-    puts "#{@remaining_guesses} guesses left."
-    #puts "#{guesses} guesses 1 in prompt_for_guess"
+  def get_guess
+    puts "#{remaining_guesses} guesses left."
     print "You've guessed the following letters: "
     guesses.uniq.sort.each { |letter| print "#{letter}  "} 
-    3.times {puts}
-    print_word_in_progress(word, guesses)
-    2.times {puts}
+    blank_lines(3)
+    print_word_in_progress
+    blank_lines(3)
     print "What's your guess?\n> "
-    guess = gets.strip.downcase
-    return guess
-    3.times {puts}
+    @guess = gets.strip.downcase
   end
 
-  def print_word_in_progress(word, guesses)
-    #puts "#{guesses} guesses 1 in print_word_in_progress"
+  def print_word_in_progress
     word.each do |letter|
       if (guesses.include? letter.to_s) 
         print "#{letter.to_s} "
@@ -72,38 +56,51 @@ class Hangman
     end
   end
 
-  def process_guess(guess, remaining_guesses)
+  def process_guess
     if word.include? guess
-      #puts "#{guess} guess 1 in process_guess"
       guesses << guess
-      #puts "#{guesses} guesses 1 process_guess"
+      blank_lines(3)
       puts "Good guess."
-      #puts "#{@remaining_guesses} @remaining_guesses 1 in process_guess"
+      puts "*" * 40
 
-      if (word.uniq - guesses == []) 
-        2.times {puts}
+      if win?
+        blank_lines(2)
         puts "You win!  The word was '#{word.join}'."
-        puts "Contratulations.   WOO HOO!!!!"
-        2.times {puts}
+        puts "Congratulations.   WOO HOO!!!!"
+        blank_lines(2)
         @remaining_guesses = 0
       end
 
     else
-      #puts "#{@remaining_guesses} remaining guesses"
+      blank_lines(3)
       puts "Wrong."
+      puts "*" * 40
       unless guesses.include? guess
         guesses << guess
         @remaining_guesses -= 1
-        puts "#{@remaining_guesses} remaining guesses"
-
-        if @remaining_guesses == 0 
+        if lose?
+          blank_lines(2)
           puts "Sorry, the word was '#{word.join}'."
+          blank_lines(2)
         end
       end
     end
   end
+
+  def win?
+    word.uniq - guesses == []
+  end
+
+  def lose?
+    remaining_guesses == 0
+  end
+
+  def blank_lines(lines)
+    lines.times {puts}
+  end
 end
 
-#### MAIN PROGRAM ####
+
+
 hangman = Hangman.new("words.txt")
 hangman.play
